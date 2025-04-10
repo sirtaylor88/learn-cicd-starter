@@ -20,6 +20,3 @@ jobs:
 
       - name: Run tests
         run: go test ./...
-
-    #   - name: Check test coverage
-    #     run: bash ./test.sh
