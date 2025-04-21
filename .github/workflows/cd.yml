@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
 
+env:
+  PROJECT_ID: glowing-willow-457509-m1
+  REGION: us-central1
+  IMAGE: us-central1-docker.pkg.dev/glowing-willow-457509-m1/notely-ar-repo/notely:latest
+
 jobs:
   deploy:
     name: Deploy
@@ -33,4 +38,7 @@ jobs:
         run: gcloud info
 
       - name: Build docker image and push to GCP repo
-        run: gcloud builds submit --tag us-central1-docker.pkg.dev/glowing-willow-457509-m1/notely-ar-repo/notely:latest .
+        run: gcloud builds submit --tag $IMAGE .
+
+      - name: Deploy to Cloud Run
+        run: gcloud run deploy notely --image $IMAGE --region $REGION --allow-unauthenticated --project $PROJECT_ID --max-instances=4
