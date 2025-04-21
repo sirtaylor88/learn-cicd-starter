@@ -4,15 +4,16 @@ on:
   push:
     branches: [main]
 
-env:
-  PROJECT_ID: glowing-willow-457509-m1
-  REGION: us-central1
-  IMAGE: us-central1-docker.pkg.dev/glowing-willow-457509-m1/notely-ar-repo/notely:latest
-
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PROJECT_ID: glowing-willow-457509-m1
+      REGION: us-central1
+      IMAGE: us-central1-docker.pkg.dev/glowing-willow-457509-m1/notely-ar-repo/notely:latest
 
     steps:
       - name: Check out code
@@ -39,6 +40,12 @@ jobs:
 
       - name: Build docker image and push to GCP repo
         run: gcloud builds submit --tag $IMAGE .
+
+      - name: Install goose to migrate DB
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest && goose -version
+
+      - name: Run DB migrations
+        run: ./scripts/migrateup.sh
 
       - name: Deploy to Cloud Run
         run: gcloud run deploy notely --image $IMAGE --region $REGION --allow-unauthenticated --project $PROJECT_ID --max-instances=4
